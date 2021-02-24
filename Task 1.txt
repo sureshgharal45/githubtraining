@@ -1,0 +1,32 @@
+1. Create connection between java & mysql
+
+Step 1:- Download the Mysql JDBC Driver.
+step 2:- GO to get connection Path
+              e.g. :-lib file -> select a mysql-connector-java-5.1.29-bin.jar
+step 3:- write code
+  
+package jdbc;
+import java.sql.*;
+public class Driver{
+     public static void main (string[] args) {
+         try{
+             //1. Get connection to database
+             Connection myconn = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student", "student");
+             
+             //2. Create statement
+             Statement mystat = myConn.createStatement();
+       
+             //3. Execute sql query
+             ResultSet myRs = myStmt.executeQuery("select * from employees");
+   
+             //4. Process the result set
+             While (myRs.next()){
+                 system.out.println(myRs.getString("last_name")+","+myRs.getString("first_name"));
+            }
+         catch (Exception exc){
+             exc.printStackTrace();
+
+        }
+     }
+}
+

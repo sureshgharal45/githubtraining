@@ -1,0 +1,423 @@
+2. Create signup page REST Api (Create one Post & one Get call api) using Spring boot MVC Rest application
+ 1. Using software programs installed in pc
+     * java Development kit (JDK)
+     * Spring Tool Suite IDE (STS)
+     * MYSql Community server 
+
+Step 1:- create Database and config Data soure
+            * create database codejavadb;
+
+Step 2:- Code Entity Class and Repository Interface
+ Code:-
+package net.codejava;
+ 
+import javax.persistence.*;
+ 
+@Entity
+@Table(name = "users")
+public class User {
+     
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+     
+    @Column(nullable = false, unique = true, length = 45)
+    private String email;
+     
+    @Column(nullable = false, length = 64)
+    private String password;
+     
+    @Column(name = "first_name", nullable = false, length = 20)
+    private String firstName;
+     
+    @Column(name = "last_name", nullable = false, length = 20)
+    private String lastName;
+     
+    // getters and setters are not shown   
+}
+
+
+Step 3:- Code run unit Test
+Code:- 
+package net.codejava;
+ 
+import static org.assertj.core.api.Assertions.assertThat;
+ 
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.annotation.Rollback;
+ 
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = Replace.NONE)
+@Rollback(false)
+public class UserRepositoryTests {
+ 
+    @Autowired
+    private TestEntityManager entityManager;
+     
+    @Autowired
+    private UserRepository repo;
+}
+
+
+Step 4:- Code controller class and Home Page
+Code:- 
+package net.codejava;
+ 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+ 
+@Controller
+public class AppController {
+ 
+    @Autowired
+    private UserRepository userRepo;
+     
+    @GetMapping("")
+    public String viewHomePage() {
+        return "index";
+    }
+}
+
+
+step 5:- create a new Html file
+index.html
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Welcome to CodeJava Home</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container text-center">
+        <h1>Welcome to CodeJava.net</h1>
+        <h3><a th:href="/@{/users}">List of Users</a></h3>
+        <h3><a th:href="/@{/register}">Register</a></h3>
+        <h3><a th:href="/@{/login}">Login</a></h3>
+    </div>
+     
+</body>
+</html>
+
+
+Step 6:- implement user Sign up feature
+Code:-
+
+@GetMapping("/register")
+public String showRegistrationForm(Model model) {
+    model.addAttribute("user", new User());
+     
+    return "signup_form";
+}
+
+
+2. Create signup_from.html
+Code:-
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Sign Up - CodeJava</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container text-center">
+        <div>
+            <h1>User Registration - Sign Up</h1>
+        </div>
+        <form th:action="@{/process_register}" th:object="${user}"
+            method="post" style="max-width: 600px; margin: 0 auto;">
+        <div class="m-3">
+            <div class="form-group row">
+                <label class="col-4 col-form-label">E-mail: </label>
+                <div class="col-8">
+                    <input type="email" th:field="*{email}" class="form-control" required />
+                </div>
+            </div>
+             
+            <div class="form-group row">
+                <label class="col-4 col-form-label">Password: </label>
+                <div class="col-8">
+                    <input type="password" th:field="*{password}" class="form-control"
+                            required minlength="6" maxlength="10"/>
+                </div>
+            </div>
+             
+            <div class="form-group row">
+                <label class="col-4 col-form-label">First Name: </label>
+                <div class="col-8">
+                    <input type="text" th:field="*{firstName}" class="form-control"
+                            required minlength="2" maxlength="20"/>
+                </div>
+            </div>
+             
+            <div class="form-group row">
+                <label class="col-4 col-form-label">Last Name: </label>
+                <div class="col-8">
+                    <input type="text" th:field="*{lastName}" class="form-control"
+                            required minlength="2" maxlength="20" />
+                </div>
+            </div>
+             
+            <div>
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </div>
+        </div>
+        </form>
+    </div>
+</body>
+</html>
+
+
+step 7:- Registration sucess
+Code:-
+
+@PostMapping("/process_register")
+public String processRegister(User user) {
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    String encodedPassword = passwordEncoder.encode(user.getPassword());
+    user.setPassword(encodedPassword);
+     
+    userRepo.save(user);
+     
+    return "register_success";
+}
+
+Registred_sucess.html
+ <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Registration Success</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container text-center">
+        <h3>You have signed up successfully!</h3>
+        <h4><a th:href="/@{/login}">Click here to Login</a></h4>
+    </div>
+     
+</body>
+</html>
+
+Step 8:-User Details
+Code:-
+
+package net.codejava;
+ 
+import java.util.Collection;
+ 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+ 
+public class CustomUserDetails implements UserDetails {
+ 
+    private User user;
+     
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
+ 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+ 
+    @Override
+    public String getPassword() {
+        return user.getPassword();
+    }
+ 
+    @Override
+    public String getUsername() {
+        return user.getEmail();
+    }
+ 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+ 
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+ 
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+ 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+     
+    public String getFullName() {
+        return user.getFirstName() + " " + user.getLastName();
+    }
+ 
+}
+
+Implementation code user_details_service
+Code:-
+
+package net.codejava;
+ 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+ 
+public class CustomUserDetailsService implements UserDetailsService {
+ 
+    @Autowired
+    private UserRepository userRepo;
+     
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepo.findByEmail(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return new CustomUserDetails(user);
+    }
+ 
+}
+
+
+Authentication (login)
+Code:-
+package net.codejava;
+ 
+import javax.sql.DataSource;
+ 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+ 
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Autowired
+    private DataSource dataSource;
+     
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new CustomUserDetailsService();
+    }
+     
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+     
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+         
+        return authProvider;
+    }
+ 
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
+    }
+ 
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+            .antMatchers("/users").authenticated()
+            .anyRequest().permitAll()
+            .and()
+            .formLogin()
+                .usernameParameter("email")
+                .defaultSuccessUrl("/users")
+                .permitAll()
+            .and()
+            .logout().logoutSuccessUrl("/").permitAll();
+    }
+     
+     
+}
+
+
+step 9:- Userpage and Logout
+Code:-
+@GetMapping("/users")
+public String listUsers(Model model) {
+    List<User> listUsers = userRepo.findAll();
+    model.addAttribute("listUsers", listUsers);
+     
+    return "users";
+}
+
+User.html
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>List Users</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container text-center">
+    <div>
+        <form th:action="@{/logout}" method="post">
+            <p>
+                Welcome <b>[[${#request.userPrincipal.principal.fullName}]]</b>
+            </p>
+            <input type="submit" value="Sign Out" />
+        </form>
+    </div>
+    <div>
+        <h1>List of Users</h1>
+    </div>
+     
+    <div>
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>User ID</th>
+                    <th>E-mail</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user: ${listUsers}">
+                    <td th:text="${user.id}">User ID</td>
+                    <td th:text="${user.email}">E-mail</td>
+                    <td th:text="${user.firstName}">First Name</td>
+                    <td th:text="${user.lastName}">Last Name</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
